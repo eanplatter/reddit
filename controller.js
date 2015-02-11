@@ -1,14 +1,15 @@
 var app = angular.module('reddit');
-app.controller('PostController', function($scope) {
+app.controller('PostController', function($scope, mainService) {
   $scope.test = 'Welcome to Reddit!'
-  $scope.posts = [];
-  $scope.addPost = function() {
 
+  $scope.addPost = function() {
+    $scope.newPost.id = guid();
     $scope.newPost.timestamp = Date.now();
     $scope.newPost.karma = 0;
     $scope.newPost.comments = [];
-    console.log($scope.newPost);
-    $scope.posts.push($scope.newPost)
+    mainService.addPost($scope.newPost).then(function(data) {
+      getData();
+    });
     $scope.reset();
   }
 
@@ -16,27 +17,39 @@ app.controller('PostController', function($scope) {
     $scope.newPost = {};
   }
 
-  $scope.vote = function(index, direction) {
-    if(direction === 'up') {
-      $scope.posts[index].karma++;
-    } else if(direction === 'down') {
-      $scope.posts[index].karma--;
-    }
+  $scope.vote = function(id, direction) {
+    console.log($scope.posts[id]);
+    mainService.vote(id, direction, $scope.posts[id].karma).then(function(data) {
+      getData();
+    })
   }
 
-  $scope.submitComment = function(index, comment) {
-    $scope.posts[index].comments.push(comment);
-    $scope.posts[index].commentForm = '';
+  $scope.submitComment = function(id, comment) {
+    mainService.addComment(id, comment).then(function(data) {
+      getData();
+    });
   };
 
+  var getData = function() {
+    mainService.getData().then(function(data) {
+      $scope.posts = data;
+      console.log('data',data);
+    });
+  }
+
+  getData();
 
 
 
-
-
-
-
-
+var guid = function() {
+  var s4 = function() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+}
 
 
 
